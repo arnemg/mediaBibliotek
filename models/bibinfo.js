@@ -5,6 +5,7 @@ const Schema = mongoose.Schema;
 const BibInfoSchema = new Schema({
   "absolute_path": String,
   "filnavn": String,
+  "size": Number,
   "atime":Date,
   "mtime": Date,
   "ctime": Date,
