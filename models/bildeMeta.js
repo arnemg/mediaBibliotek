@@ -37,8 +37,8 @@ const bildeMetaSchema = new Schema({
   "ExifImageWidth": Number,
   "DateTimeOriginal": String,
   //Henter fra GPS
-  "GPSLongitude":[{"Null": Number, "En": Number, "To": Number}],
-  "GPSLatitude": [{"Null": Number, "En": Number, "To": Number}]
+  "GPSLongitude":[String, String, String],
+  "GPSLatitude": [String, String, String]
   });
 
 //Vil lage en collection med navn bibinfo
