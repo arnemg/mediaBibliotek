@@ -1,9 +1,12 @@
 var fs = require('fs');
 var ffmpeg = require('ffmpeg');
 var ExifImage = require('exif').ExifImage;
+const videInfo = require('./models/videoMeta');
+const bildeInfo = require('./models/bildeMeta');
 
-//var dir = "D:/Bildene/Art/Exporterte";
-var dir = './media';
+var dir = "D:/Bildene/Bilder";
+//var dir = './media';
+//var dir = '../tmp';
 
 var walk = function(dir, done) {
   var results = [];
@@ -29,50 +32,76 @@ var walk = function(dir, done) {
   });
 };
 
-//Rekursiv funksjon for å traversere fra var dir - results er en array med
-// fulle path og filnavn
 walk(dir, function(err, results) {
   if (err) throw err;
-
     results.forEach(function(sti){
       var filnavnet = sti.substring(sti.lastIndexOf('/') + 1, sti.length - 4);
-      var mediaExt = ["mp4", "avi", "mpg", "mov"];
+      var mediaExt = ["mp4", "avi", "mpg", "mov", "wmv"];
+      var bildeExt = ["jpg", "gif", "png"];
+      //Ny instans av Schema for bilde og video
 
-      console.log(filnavnet + " har mediaExt -> " + sti.substring(sti.length-3));
 
+
+      /** FFMPEG funksjon for å hente metadata ------------------VIDEO **/
       if(mediaExt.includes(sti.substring(sti.length-3)) ){
         try {
     			var process = new ffmpeg(sti);
     			process.then(function (video) {
             fs.stat(sti, function(err, stats){
-              var bibMeta = {
-                            "absolute_path": sti,
-                            "filnavn": filnavnet,
-                            "atime":stats.atime,
-                            "mtime": stats.mtime,
-                            "ctime": stats.ctime,
-                            "birthtime": stats.birthtime};
-              video_fil.write(JSON.stringify(bibMeta));
+                  var denneVideoMeta = new videInfo({
+                      "absolute_path": sti,
+                      "filnavn": filnavnet,
+                      "date": video.metadata.date,
+                      "duration": video.metadata.duration.seconds,
+                      "container": video.metadata.video.container,
+                      "resolution_w": video.metadata.video.resolution.w,
+                      "resolution_h": video.metadata.video.resolution.h,
+                      "fps": video.metadata.video.aspect.fps
+                    });
+                  //var video_fil = fs.createWriteStream("./metaoutput/" + filnavnet + "_VIDEO_metadata.json");
+                  //video_fil.write(JSON.stringify(denneVideoMeta));
 
-            });
+                  denneVideoMeta.save().then(function(done){
+                    console.log("-------> Saved V I D E O  til databasen <----------");
+                    done();
+                  });
 
-            var video_fil = fs.createWriteStream("./metaoutput/" + filnavnet + "_VIDEO_metadata.json");
-            video_fil.write(JSON.stringify(video.metadata));
-
-    		  }, function (err) {
+              });
+          }, function (err) {
     				console.log('ERR  write file: ' + err);
     			});//function err
     		} catch (e) {	console.log("try ERR--> e.code og e.msg " + e.code + e.msg);	}
-      }else if(sti.substring(sti.length-3) === 'jpg' ){
+
+      /** EXIF funksjon for å hente metadata  ------------------BILDE**/
+    }else if(bildeExt.includes(sti.substring(sti.length-3).toLowerCase()) ){
         try {
             new ExifImage( sti, function (error, exifData) {
                 if (error)
                     console.log('Exif ERR: ' + filnavnet +error.message);
                 else
                     try{
-                      bilde_fil = fs.createWriteStream("./metaoutput/" + filnavnet + "_BILDE_metadata.json");
-                      bilde_fil.write(JSON.stringify(exifData));
-                      myObj += exifData;
+                      var detteBildeMeta = new bildeInfo({
+                        "absolute_path": sti,
+                        "filnavn": filnavnet,
+                        "ModifyDate": exifData.image.ModifyDate,
+                        "Model": exifData.image.Model,
+                        "Make": exifData.image.Make,
+                        "CreateDate": exifData.exif.CreateDate,
+                        "ExifImageHeight": exifData.exif.ExifImageHeight,
+                        "ExifImageWidth": exifData.exif.ExifImageWidth,
+                        "DateTimeOriginal": exifData.exif.DateTimeOriginal,
+                        "GPSLongitude": exifData.gps.GPSLongitude,
+                        "GPSLatitude": exifData.gps.GPSLatitude
+
+                      });
+                      //bilde_fil = fs.createWriteStream("./metaoutput/" + filnavnet + "_BILDE_metadata.json");
+                      //bilde_fil.write(JSON.stringify(detteBildeMeta));
+
+                      detteBildeMeta.save().then(function(done){
+                        console.log("-------> Saved B I L D E T til databasen <----------");
+                        done();
+                      });
+
                     }catch(error){console.log(filnavnet + " har feilet ERR --> " + error);}
             });
         } catch (error) {
@@ -80,5 +109,4 @@ walk(dir, function(err, results) {
         }
       }
     });//forEach Results
-
 });//walk
