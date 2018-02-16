@@ -2,7 +2,8 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 //Set up default mongoose connection
-var mongoDB = 'mongodb://127.0.0.1/MediaMetaData';
+//var mongoDB = 'mongodb://127.0.0.1/MediaMetaData';
+var mongoDB = 'mongodb://test:test@ds133558.mlab.com:33558/media'
 mongoose.connect(mongoDB);
 // Get Mongoose to use the global promise library
 mongoose.Promise = global.Promise;
@@ -34,7 +35,7 @@ const metadataSchema = new Schema({
   "absolute_path": String,
   "filnavn": String,
   "ModifyDate": String,
-  "Make": String, 
+  "Make": String,
   "Model": String,
   "CreateDate": String,
   "ExifImageHeight": Number,
@@ -44,7 +45,7 @@ const metadataSchema = new Schema({
   });
 
 //Vil lage en collection med navn bibinfo
-const metadataModel = mongoose.model('metadata', metadataSchema);
+const metadataModel = mongoose.model('MediaMetadata', metadataSchema);
 
 //Gjør denne tilgjengelig i andre filer.
 module.exports = metadataModel;

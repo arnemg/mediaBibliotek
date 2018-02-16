@@ -5,8 +5,11 @@ var ExifImage = require('exif').ExifImage;
 //const bildeInfo = require('./models/bildeMeta');
 const metaInfo = require('./models/metaData');
 //var dir = "D:/Bildene/Bilder";
-//var dir = './media';
-var dir = '../tmp';
+//var dir = '../../Programmering/media';
+//var dir = '../../Programmering/media';
+var dir = '/Users/arnemg/Videos';
+
+
 console.log("------------------- A B O U T   T O    W A L K  -----------------");
 
 
@@ -73,7 +76,7 @@ walk(dir, function(err, results) {
                   denneVideoMeta.save().then(function(done){
                     countdown--;
                     console.log("-------> Saved V I D E O  " + countdown + " til databasen <----------");
-                    
+
                   });
 
               });
@@ -91,7 +94,7 @@ walk(dir, function(err, results) {
         try {
             new ExifImage( sti, function (error, exifData) {
                 if (error)
-                    console.log('Exif ERR: ' + filnavnet +error.message);
+                    console.log('Exif ERR: ' + filnavnet + "--" + error.message);
                     //console.log('Exif ERR: ' + filnavnet +error.message);
                 else
                     try{
