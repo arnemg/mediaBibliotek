@@ -4,14 +4,12 @@ var ExifImage = require('exif').ExifImage;
 const videInfo = require('./models/videoMeta');
 const bildeInfo = require('./models/bildeMeta');
 
-error_fil = fs.createWriteStream("Error_File_UpdateDB.log");
-//bilde_fil.write(JSON.stringify(detteBildeMeta));
-
 //var dir = "D:/Bildene/Bilder";
-var dir = './media';
-//var dir = '../tmp';
-
+//var dir = './media';
+var dir = '../tmp';
+console.log("------------------- A B O U T   T O    W A L K  -----------------");
 var walk = function(dir, done) {
+
   var results = [];
   fs.readdir(dir, function(err, list) {
     if (err) return done(err);
@@ -37,13 +35,17 @@ var walk = function(dir, done) {
 
 walk(dir, function(err, results) {
   if (err) throw err;
+  var countdown = results.length;
+  var feilfiler=0;
+  console.log("------------------- W A L K I N G   F O R  --> "+ countdown + " <-- S T E P S ------");
     results.forEach(function(sti){
       var filnavnet = sti.substring(sti.lastIndexOf('/') + 1, sti.length - 4);
-      var mediaExt = ["mp4", "avi", "mpg", "mov", "wmv"];
+      var mediaExt = ["mp4", "avi", "mpg", "mov", "wmv" , "3gp"];
       var bildeExt = ["jpg", "gif", "png"];
+      var error_fil = fs.createWriteStream("Error_File_UpdateDB.log");
 
       /** FFMPEG funksjon for å hente metadata ------------------VIDEO **/
-      if(mediaExt.includes(sti.substring(sti.length-3)) ){
+      if(mediaExt.includes(sti.substring(sti.length-3).toLowerCase()) ){
         try {
     			var process = new ffmpeg(sti);
     			process.then(function (video) {
@@ -60,17 +62,18 @@ walk(dir, function(err, results) {
                     });
 
                   denneVideoMeta.save().then(function(done){
-                    console.log("-------> Saved V I D E O  til databasen <----------");
-                    done();
+                    countdown--;
+                    console.log("-------> Saved V I D E O  " + countdown + " til databasen <----------");
+                    //done();
                   });
 
               });
           }, function (err) {
-            error_fil.write("Feil i å skrive til fil --> " + err);
+            console.log("Feil i å skrive til fil --> " + err);
     				//console.log('ERR  write file: ' + err);
     			});//function err
     		} catch (e) {
-                      error_fil.write("try ERR--> e.code og e.msg " + e.code + e.msg);
+                      console.log("try ERR--> e.code og e.msg " + e.code + e.msg);
                       //console.log("try ERR--> e.code og e.msg " + e.code + e.msg);
                     }
 
@@ -79,7 +82,7 @@ walk(dir, function(err, results) {
         try {
             new ExifImage( sti, function (error, exifData) {
                 if (error)
-                    error_fil.write('Exif ERR: ' + filnavnet +error.message);
+                    console.log('Exif ERR: ' + filnavnet +error.message);
                     //console.log('Exif ERR: ' + filnavnet +error.message);
                 else
                     try{
@@ -98,17 +101,21 @@ walk(dir, function(err, results) {
                       });
 
                       detteBildeMeta.save().then(function(done){
-                        console.log("-------> Saved B I L D E T til databasen <----------");
-                        done();
+                        countdown--;
+                        console.log("-------> Saved B I L D E T  " + countdown + "  til databasen <----------");
+                        //done();
                       });
 
                     }catch(error){
-                        error_fil.write("Næmmen noe har feilet har feilet ERR --> " + error);}
-            });
-        } catch (error) {
-              error_fil.write('TryNext ERR: ' +  error.message);
-        }
+                        console.log("Næmmen noe har feilet har feilet ERR --> " + error);}
+            });//new EXIF
+           }catch (error) {
+              console.log('TryNext ERR: ' +  error.message);
+                }
+      }else {
+          feilfiler++;
+          console.log("************** F E I L NR: " + feilfiler + " ---> " + sti);
+          error_fil.write('************** F E I L NR: ' + feilfiler + " ---> " + sti);
       }
     });//forEach Results
 });//walk
-    error_fil.close();
