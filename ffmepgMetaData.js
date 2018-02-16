@@ -1,15 +1,16 @@
 var fs = require('fs');
 var ffmpeg = require('ffmpeg');
 var ExifImage = require('exif').ExifImage;
-const videInfo = require('./models/videoMeta');
-const bildeInfo = require('./models/bildeMeta');
-
+//const videInfo = require('./models/videoMeta');
+//const bildeInfo = require('./models/bildeMeta');
+const metaInfo = require('./models/metaData');
 //var dir = "D:/Bildene/Bilder";
 //var dir = './media';
 var dir = '../tmp';
 console.log("------------------- A B O U T   T O    W A L K  -----------------");
-var walk = function(dir, done) {
 
+
+var walk = function(dir, done) {
   var results = [];
   fs.readdir(dir, function(err, list) {
     if (err) return done(err);
@@ -50,7 +51,8 @@ walk(dir, function(err, results) {
     			var process = new ffmpeg(sti);
     			process.then(function (video) {
             fs.stat(sti, function(err, stats){
-                  var denneVideoMeta = new videInfo({
+                  var denneVideoMeta = new metaInfo({
+                      "media": "Video",
                       "absolute_path": sti,
                       "filnavn": filnavnet,
                       "date": video.metadata.date,
@@ -58,13 +60,20 @@ walk(dir, function(err, results) {
                       "container": video.metadata.video.container,
                       "resolution_w": video.metadata.video.resolution.w,
                       "resolution_h": video.metadata.video.resolution.h,
-                      "fps": video.metadata.video.aspect.fps
+                      "fps": video.metadata.video.aspect.fps,
+                      "ModifyDate": "",
+                      "Model": "",
+                      "Make": "",
+                      "CreateDate": "",
+                      "ExifImageHeight": "",
+                      "ExifImageWidth": "" ,
+                      "DateTimeOriginal": ""
                     });
 
                   denneVideoMeta.save().then(function(done){
                     countdown--;
                     console.log("-------> Saved V I D E O  " + countdown + " til databasen <----------");
-                    //done();
+                    
                   });
 
               });
@@ -86,18 +95,23 @@ walk(dir, function(err, results) {
                     //console.log('Exif ERR: ' + filnavnet +error.message);
                 else
                     try{
-                      var detteBildeMeta = new bildeInfo({
+                      var detteBildeMeta = new metaInfo({
+                        "media": "Bilde",
                         "absolute_path": sti,
                         "filnavn": filnavnet,
+                        "date": "",
+                        "duration": "",
+                        "container": "",
+                        "resolution_w": "",
+                        "resolution_h": "",
+                        "fps": "",
                         "ModifyDate": exifData.image.ModifyDate,
                         "Model": exifData.image.Model,
                         "Make": exifData.image.Make,
                         "CreateDate": exifData.exif.CreateDate,
                         "ExifImageHeight": exifData.exif.ExifImageHeight,
                         "ExifImageWidth": exifData.exif.ExifImageWidth,
-                        "DateTimeOriginal": exifData.exif.DateTimeOriginal,
-                        "GPSLongitude": exifData.gps.GPSLongitude,
-                        "GPSLatitude": exifData.gps.GPSLatitude
+                        "DateTimeOriginal": exifData.exif.DateTimeOriginal
                       });
 
                       detteBildeMeta.save().then(function(done){
